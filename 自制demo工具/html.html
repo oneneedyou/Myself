@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title style="color: black">Fastapi</title>
+</head>
+<body>
+    <h1>2023-01-21</h1>
+    <p style="color: deeppink">这是P标签</p >
+    <p>用户名称: {{ name }}</p >
+
+    {% for todo in todos %}
+        <p>{{ todo }}</p >
+    {% endfor %}
+    <div>
+        <form action="/dodo" method="post">
+            <input name="data_txt" placeholder="请输入数据:">
+            <input type="submit" value="添加">
+        </form>
+    </div>
+</body>
+</html>
