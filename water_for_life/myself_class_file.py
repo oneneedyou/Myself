@@ -1,4 +1,15 @@
-#发送http请求------------------------------------
+#数据类型
+class data_class():
+    def dictionary(self):
+        a = {}
+
+
+#测试函数，异常报错函数
+class error_():
+    def NOT_fuc(self):
+        print(">>>>>>>>>>>>>>ERROR:", "函数不存在")
+
+#发送http请求
 class request_():
     def get_(self):
         import requests
@@ -227,7 +238,24 @@ class base64_():
         print("bs64 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", bs64)
         return base64
 
+#类装饰器，循环执行N次被装饰的函数
+class loop_(object):
+    def __init__(self, num):
+        """接收装饰器参数，在这是是循环次数"""
+        self.level = num
 
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            print("[循环{0}次]: enter {1}()".format(self.level, func.__name__))
+            i = 0
+            a = {}
+            while i < self.level:
+                i += 1
+                print(f"第{i}次")
+                a[f"第{i}次"] = func(*args, **kwargs)
+            print(">>>{0}次循环结束<<<")
+            return a
+        return wrapper
 
 
 
