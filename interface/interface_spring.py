@@ -77,7 +77,6 @@ class server():
         print("响应头: ", res.headers)
         print("响应体: ", res.content.decode(res.apparent_encoding))
 
-
 ########################################################################################################################
 class client_para_:
     username: str = "secadmin"
@@ -86,6 +85,30 @@ class client_para_:
     port: int = 9881
 
 class client():
+    def print_info(self, res, des):
+        print(f"{des}==============================================")
+        print("状态码: ", res.status_code)
+        print("响应头: ", res.headers)
+        print("响应体: ", res.json())
+
+    def get_labes_id(self, *args, **kwargs):
+        """贴标签的请求中，labes键值需要标签id列表"""
+        labels_id = []
+        for i in kwargs["labels"]:
+            a = mysql_.MYSQL_1().DB_object(host="192.168.222.202", sql_do=f"select id from labels where name='{i}'")
+            b = int(a["查询结果数(内容)"][0][0])
+            labels_id.append(b)
+        return labels_id
+
+    def get_task_id(self, *args, **kwargs):
+        """根据计划名称获取计划id"""
+        text = mysql_().MYSQL_1().DB_object(host="192.168.222.202", port=56788, user="Niord", password="hardwork",
+                                            database="docmanager",
+                                            sql_do="select PlanID from plan_info where PlanName='" + str(
+                                                kwargs["plan_name"]) + "';")
+        sql_task_id = text["查询结果数(内容)"][0][0]
+        return sql_task_id
+
     def updata_server_Message(self, *args, **kwargs):
         """更新客户端的服务指向"""
         # 客户端更新服务端接口
@@ -145,60 +168,60 @@ class client():
         planid = str(uuid_().uuid())
         url = f"https://{client_para_.ip}:{client_para_.port}/api/plan_info"
         data = {
-    "planid": planid,
-    "planname": kwargs["plan_name"],
-    "plandescription": "",
-    "plantype": "0",
-    "plancontent": {
-        "Burn": 0,
-        "CheckPlan": 0,
-        "IsDup": 1,
-        "IsRun": 0,
-        "IsRunAdmin": 1,
-        "IsWithCD": 0,
-        "IsoFormat": 0,
-        "MachineCode": "",
-        "PlanID": planid,
-        "PlanInfo": {
-            "FilePath": [
-                str(kwargs["plan_file_path"])
-            ],
-            "Filter": [],
-            "FilterOut": [],
-            "IsAll": 0,
-            "IsCompress": 0,
-            "IsSetClear": 0,
-            "ClearDays": 0,
-            "PluginDesc": None,
-            "RaidType": None,
-            "RaidNum": 0
-        },
-        "PlanLevel": 0,
-        "PlanName": "千万---文件",
-        "PlanType": 0,
-        "TaskSourceValue": None,
-        "UserID": "",
-        "WriteSytle": 0,
-        "Times": [
-            {
-                "DataType": "单次",
-                "Year": 2023,
-                "Month": 2,
-                "Day": 20,
-                "Hour": "00",
-                "Minute": "00",
-                "Time": "2023-02-19T16:00:00.000Z",
-                "IsAll": True,
-                "TimeName": "",
-                "index": 0
-            }
-        ]
-    },
-    "planstate": 0,
-    "planisonce": 1,
-    "planisexcute": 0,
-    "labels": []
-}
+            "planid": planid,
+            "planname": kwargs["plan_name"],
+            "plandescription": "",
+            "plantype": "0",
+            "plancontent": {
+                "Burn": 0,
+                "CheckPlan": 0,
+                "IsDup": 1,
+                "IsRun": 0,
+                "IsRunAdmin": 1,
+                "IsWithCD": 0,
+                "IsoFormat": 0,
+                "MachineCode": "",
+                "PlanID": planid,
+                "PlanInfo": {
+                    "FilePath": [
+                        str(kwargs["plan_file_path"])
+                    ],
+                    "Filter": [],
+                    "FilterOut": [],
+                    "IsAll": 0,
+                    "IsCompress": 0,
+                    "IsSetClear": 0,
+                    "ClearDays": 0,
+                    "PluginDesc": None,
+                    "RaidType": None,
+                    "RaidNum": 0
+                },
+                "PlanLevel": 0,
+                "PlanName": "千万---文件",
+                "PlanType": 0,
+                "TaskSourceValue": None,
+                "UserID": "",
+                "WriteSytle": 0,
+                "Times": [
+                    {
+                        "DataType": "单次",
+                        "Year": 2023,
+                        "Month": 2,
+                        "Day": 20,
+                        "Hour": "00",
+                        "Minute": "00",
+                        "Time": "2023-02-19T16:00:00.000Z",
+                        "IsAll": True,
+                        "TimeName": "",
+                        "index": 0
+                    }
+                ]
+            },
+            "planstate": 0,
+            "planisonce": 1,
+            "planisexcute": 0,
+            "labels": []
+        }
 
         headers = self.login(*args, **kwargs)
         res = requests.post(url=url, json=data, headers=headers, verify=False)
@@ -207,7 +230,7 @@ class client():
         print("响应头: ", res.headers)
         print("响应体: ", res.content.decode(res.apparent_encoding))
 
-    def execute_plan_instantly(self, *args, **kwargs):
+    def execute_plan_instantly(self, is_all: int = 1, *args, **kwargs):
         """客户端立即执行接口"""
         text = mysql_().MYSQL_1().DB_object(host="192.168.222.202", port=56788, user="Niord", password="hardwork",
                                      database="docmanager", sql_do="select PlanID from plan_info where PlanName='" + str(kwargs["plan_name"]) + "';")
@@ -217,7 +240,7 @@ class client():
         url = f"https://{client_para_.ip}:{client_para_.port}/api/plan_task/immediately"
         data = {
             "planid": sql_task_id,
-            "is_all": 1
+            "is_all": is_all#1全量，0增量; 默认全量
         }
 
         headers = self.login(*args, **kwargs)
@@ -308,7 +331,116 @@ class client():
             "labels": []
         }
 
+    def get_all_plan_info(self, *args, **kwargs):
+        method = "post"
+        url = "https://localhost:9881/api/plan_info/_search"
+        para = {
+            "page": 0,
+            "size": 100,
+            "sort": ["addtime", "desc"]
+        }
+        data = {"where": {"bool_and": []}}
+
+        res = requests.post(url=url, params=para, json=data, headers=client.login(), verify=False)
+        self.print_info(res, des="客户端计划信息检索接口---检索全部计划")
+        return res
+
+    def from_planname_search_info(self, *args, **kwargs):
+        """根据计划名称检索计划信息，后边贴标签要用到它"""
+        method = "post"
+        url = "https://localhost:9881/api/plan_info/_search"
+        para = {
+            "page": 0,
+            "size": 100,
+            "sort": ["addtime", "desc"]
+        }
+        data = {"where": {"bool_and": [{"planname.contains": kwargs["plan_name"]}]}}
+
+        res = requests.post(url=url, params=para, json=data, headers=client.login(), verify=False)
+        self.print_info(res, des="客户端计划信息检索接口---检索计划名称")
+        return res
+
+    def labes(self, *args, **kwargs):
+        """计划名称，标签名称列表"""
+        method = "put"
+        url = "https://localhost:9881/api/plan_info"
+        # data = {
+        #     "planid": "f7bcb53b-a05e-4000-9a23-482c8c05342d",
+        #     "planname": "视频分析",
+        #     "plandescription": "",
+        #     "plantype": "0",
+        #     "plancontent": {
+        #         "Burn": 0,
+        #         "CheckPlan": 0,
+        #         "IsDup": 1,
+        #         "IsRun": 1,
+        #         "IsRunAdmin": 1,
+        #         "IsWithCD": 0,
+        #         "IsoFormat": 0,
+        #         "MachineCode": "",
+        #         "PlanID": "f7bcb53b-a05e-4000-9a23-482c8c05342d",
+        #         "PlanInfo": {
+        #             "FilePath": [
+        #                 "D:/Users/Administrator/Desktop/Myself/Myself_Python/TEST_FILE/正常/正常文件/文件类型/视频"
+        #             ],
+        #             "Filter": [],
+        #             "FilterOut": [],
+        #             "IsAll": 0,
+        #             "IsCompress": 0,
+        #             "IsSetClear": 0,
+        #             "ClearDays": 0,
+        #             "PluginDesc": None,
+        #             "RaidType": None,
+        #             "RaidNum": None
+        #         },
+        #         "PlanLevel": 2,
+        #         "PlanName": "视频分析",
+        #         "PlanType": 0,
+        #         "TaskSourceValue": None,
+        #         "UserID": "",
+        #         "WriteSytle": 0,
+        #         "Times": [
+        #             {
+        #                 "Month": 2,
+        #                 "Year": 2023,
+        #                 "Minute": "00",
+        #                 "Hour": "00",
+        #                 "DataType": "单次",
+        #                 "index": 0,
+        #                 "Time": "2023-02-19T16:00:00.000Z",
+        #                 "Day": 20,
+        #                 "TimeName": "",
+        #                 "IsAll": True
+        #             }
+        #         ]
+        #     },
+        #     "planstate": 0,
+        #     "planisonce": 1,
+        #     "planisexcute": 1,
+        #     "labels": [
+        #         14,
+        #         15
+        #     ],
+        #     "id": 3
+        # }
+        data = {}
+        res = self.from_planname_search_info(plan_name="视频分析").json()[0]
+        list = ["planid", "planname", "plandescription", "plantype", "planstate", "planisonce", "planisexcute", "id"]
+        for i in list:
+            data[i] = res[i]
+        data["labels"] = self.get_labes_id(*args, **kwargs)
+
+        a = res["plancontent"];print("》》》》》》》》》》》》》》", a)
+
+        data["plancontent"] = ""
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", a.content.decode(a.encoding))
+
+        # res = requests.put(url=url, data=data, headers=client.login(), verify=False)
+        # self.print_info(res=res, des="计划贴标签")
+
 ########################################################################################################################
-# if __name__ == "__main__":
-#     client = client();server = server()
-#     server.login()
+if __name__ == "__main__":
+    client = client();server = server()
+    # server.login()
+    client_para_.password = "Push@123.com1"
+    client.labes(planname="视频分析", labels=[1,2,22])
