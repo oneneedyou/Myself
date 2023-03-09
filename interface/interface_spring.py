@@ -84,6 +84,7 @@ class client_para_:
     password: str = "Push@123.com"
     ip: str = "192.168.1.200"
     port: int = 9881
+    taskid = None
 
 class client():
     def print_info(self, des, res, *args, **kwargs):
@@ -102,10 +103,16 @@ class client():
     def planname_to_taskid(self, *args, **kwargs):
         text = mysql_().MYSQL_1().DB_object(host="192.168.222.202", port=56788, user="Niord", password="hardwork",
                                             database="docmanager",
-                                            sql_do="select PlanID from plan_info where PlanName='" + str(
-                                                kwargs["plan_name"]) + "';")
+                                            sql_do="select PlanID from plan_info where PlanName='" + str(kwargs["plan_name"]) + "';")
         return text["查询结果数(内容)"][0][0]
 
+    def get_task_status(self, taskid, *args, **kwargs):
+        status = mysql_.MYSQL_1().DB_object(host=server_para_.ip, sql_do=f"select TaskState from tasktable where TaskId='{taskid}';")
+        print(f"select TaskState from tasktable where TaskId='{taskid}';")
+        if status["查询结果数(内容)"][0][0] == 1000:
+            return True
+        else:
+            return False
     def updata_server_Message(self, *args, **kwargs):
         """更新客户端的服务指向"""
         # 客户端更新服务端接口
@@ -129,7 +136,7 @@ class client():
             "rememberMe": True,
             "isArchive": True
         }
-        res = requests.post(url=self.url_("/api/authenticate"), json=client_login_data, headers=None, verify=False)
+        res = requests.post(url=self.url_("api/authenticate"), json=client_login_data, headers=None, verify=False)
         print("获取token, 客户端登录==============================================")
         print("状态码: ", res.status_code)
         print("响应头: ", res.headers)
@@ -210,39 +217,41 @@ class client():
         }
         return self.print_info(des="添加计划信息, 客户端建立计划接口", res=requests.post(url=self.url_("api/plan_info"), json=data, headers=self.login(*args, **kwargs), verify=False))
 
-    def execute_plan_instantly(self, is_all: int = 1, *args, **kwargs):
+    def execute_plan_instantly(self, is_all, *args, **kwargs):
         """客户端立即执行接口"""
         methond = "post"
         data = {
-            "planid": self.planname_to_taskid(),
+            "planid": self.planname_to_taskid(*args, **kwargs),
             "is_all": is_all
         }
-        return self.print_info(des="客户端立即执行接口", res=requests.post(url=self.url_("api/plan_task/immediately"), json=data, headers=self.login(*args, **kwargs), verify=False))
 
-    def mysql_test_link(self):
-        pass
-    #数据库链接测试
+        res = requests.post(url=self.url_("api/plan_task/immediately"), json=data, headers=self.login(*args, **kwargs), verify=False)
+        client_para_.taskid = res.json()["taskid"]
+        return self.print_info(des="客户端立即执行接口", res=res)
+
+    def mysql_test_link(self, *args, **kwargs):
+        #数据库链接测试
         method = "post"
-        url = f"https://{client_para_.ip}:{client_para_.port}/api/database/databaseConnectionNew"
         data = {
             "BKPath": "F:/迅雷下载",
             "BasePath": "",
             "DBName": "docmanager",
             "DBType": 3,
-            "Host": "192.168.222.202",
+            "Host": server_para_.ip,
             "MysqlDump": "D:/Users/Administrator/Desktop/归档客户端/mysqldump.exe",
             "PassWord": "hardwork",
             "PluginDesc": None,
             "Port": "56788",
             "UserName": "Niord"
         }
+        return self.print_info(des="数据库链接测试", res=requests.post(url=self.url_("api/database/databaseConnectionNew"), json=data, headers=self.login(), verify=False))
 
-    def mysql_archive_plan(self):
+    def mysql_archive_plan(self, *args, **kwargs):
         method = "post"
-        url = f"https://{client_para_.ip}:{client_para_.port}/api/plan_info"
+        planid = uuid_().uuid()
         data = {
-            "planid": "a6457c0d-452e-1556-5fc8-e5c393d6fac3",
-            "planname": "数据库归档",
+            "planid": planid,
+            "planname": kwargs["plan_name"],
             "plandescription": "",
             "plantype": 1,
             "plancontent": {
@@ -254,13 +263,13 @@ class client():
                 "IsWithCD": 0,
                 "IsoFormat": 0,
                 "MachineCode": "",
-                "PlanID": "a6457c0d-452e-1556-5fc8-e5c393d6fac3",
+                "PlanID": planid,
                 "PlanInfo": {
                     "BKPath": "F:/迅雷下载",
                     "BasePath": "",
                     "DBName": "docmanager",
                     "DBType": 3,
-                    "Host": "192.168.222.202",
+                    "Host": server_para_.ip,
                     "MysqlDump": "D:/Users/Administrator/Desktop/归档客户端/mysqldump.exe",
                     "PassWord": "hardwork",
                     "PluginDesc": None,
@@ -270,7 +279,7 @@ class client():
                     "RaidNum": None
                 },
                 "PlanLevel": 0,
-                "PlanName": "数据库归档",
+                "PlanName": kwargs["plan_name"],
                 "PlanType": 1,
                 "TaskSourceValue": None,
                 "UserID": "",
@@ -295,6 +304,64 @@ class client():
             "planisexcute": 0,
             "labels": []
         }
+        return self.print_info(des="建立数据库归档计划接口", res=requests.post(url=self.url_("api/plan_info"), headers=self.login(), json=data, verify=False))
+
+    def restore(self, *args, **kwargs):
+        method = "post"
+        data = {
+            "applyname": kwargs["applyname"],
+            "path": kwargs["path"],
+            "planid": self.planname_to_taskid(*args, **kwargs),
+            "taskid": kwargs["taskid"]
+        }
+        return self.print_info(des="客户端还原接口", res=requests.post(url=self.url_("api/plan_task/version_restore"), headers=self.login(), json=data, verify=False))
+
+    def get_all_plan_info(self, *args, **kwargs):
+        method = "post"
+        para = {
+            "page": 0,
+            "size": 100,
+            "sort": ["addtime", "desc"]
+        }
+        data = {"where": {"bool_and": []}}
+        return self.print_info(des="客户端计划信息检索接口---检索全部计划", res=requests.post(url=self.url_("api/plan_info/_search"), params=para, json=data, headers=self.login(), verify=False))
+
+    def from_planname_search_info(self, *args, **kwargs):
+        """根据计划名称检索计划信息，后边贴标签要用到它"""
+        method = "post"
+        para = {
+            "page": 0,
+            "size": 100,
+            "sort": ["addtime", "desc"]
+        }
+        data = {"where": {"bool_and": [{"planname.contains": kwargs["plan_name"]}]}}
+        return self.print_info(des="客户端计划信息检索接口---检索计划名称", res=requests.post(url=self.url_("api/plan_info/_search"), params=para, json=data, headers=self.login(), verify=False))
+
+    def labes(self, plan_name,labels_list, *args, **kwargs):
+        """计划名称，标签名称列表"""
+        def get_labels_id(labels_list):
+            res = []
+            for i in labels_list:
+                a = mysql_.MYSQL_1().DB_object(host=server_para_.ip, sql_do=f"select id from labels where name='{i}';")
+                res.append(a["查询结果内容"][0][0])
+            return res
+
+        method = "put"
+        data = {}
+        result0 = mysql_.MYSQL_1().DB_object(host=server_para_.ip,
+                                   sql_do=f"select id,PlanID,PlanName,PlanDescription,PlanType,PlanContent,PlanState,PlanIsOnce,PlanIsExcute from plan_info where PlanName='{plan_name}';")
+        result = result0["查询结果内容"]
+        data["id"] = result[0][0]
+        data["planid"] = result[0][1]
+        data["planname"] = result[0][2]
+        data["plandescription"] = result[0][3]
+        data["plantype"] = result[0][4]
+        data["plancontent"] = result[0][5]; data["plancontent"]["PlanInfo"]["PluginDesc"] = None; data["plancontent"]["PlanInfo"]["RaidType"] = None; data["plancontent"]["PlanInfo"]["RaidNum"] = None; data["plancontent"]["TaskSourceValue"] = None
+        data["planstate"] = result[0][6]
+        data["planisonce"] = result[0][7]
+        data["planisexcute"] = result[0][8]
+        data["labels"] = get_labels_id(labels_list)
+        self.print_info(des="计划贴标签", res=requests.put(url=self.url_("api/plan_info"), data=data, headers=self.login(), verify=False))
 
 ########################################################################################################################
 # if __name__ == "__main__":

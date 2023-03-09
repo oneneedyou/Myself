@@ -1,2 +1,88 @@
+{
+  "PlanInfo": {
+    "FilePath": [
+      "D:/Users/Administrator/Desktop/Myself/Myself_Python/TEST_FILE/正常/正常文件/文件类型/视频"
+    ],
+    "Filter": [],
+    "IsCompress": 0,
+    "IsAll": 0,
+    "ClearDays": 0,
+    "FilterOut": [],
+    "IsSetClear": 0
+  },
+  "CheckPlan": 0,
+  "IsWithCD": 0,
+  "PlanID": "f7bcb53b-a05e-4000-9a23-482c8c05342d",
+  "WriteSytle": 0,
+  "PlanLevel": 2,
+  "PlanName": "视频分析",
+  "IsRunAdmin": 1,
+  "IsDup": 1,
+  "Burn": 0,
+  "MachineCode": "",
+  "UserID": "",
+  "Times": [
+    {
+      "Month": 2,
+      "Year": 2023,
+      "Minute": "00",
+      "Hour": "00",
+      "DataType": "单次",
+      "index": 0,
+      "Time": "2023-02-19T16:00:00.000Z",
+      "Day": 20,
+      "TimeName": "",
+      "IsAll": true
+    }
+  ],
+  "PlanType": 0,
+  "IsRun": 1,
+  "IsoFormat": 0
+}
 
+{
+    "Burn": 0,
+    "CheckPlan": 0,
+    "IsDup": 1,
+    "IsRun": 1,
+    "IsRunAdmin": 1,
+    "IsWithCD": 0,
+    "IsoFormat": 0,
+    "MachineCode": "",
+    "PlanID": "f7bcb53b-a05e-4000-9a23-482c8c05342d",
+    "PlanInfo": {
+        "FilePath": [
+            "D:/Users/Administrator/Desktop/Myself/Myself_Python/TEST_FILE/正常/正常文件/文件类型/视频"
+        ],
+        "Filter": [],
+        "FilterOut": [],
+        "IsAll": 0,
+        "IsCompress": 0,
+        "IsSetClear": 0,
+        "ClearDays": 0,
+        "PluginDesc": None,
+        "RaidType": None,
+        "RaidNum": None
+    },
+    "PlanLevel": 2,
+    "PlanName": "视频分析",
+    "PlanType": 0,
+    "TaskSourceValue": None,
+    "UserID": "",
+    "WriteSytle": 0,
+    "Times": [
+        {
+            "Month": 2,
+            "Year": 2023,
+            "Minute": "00",
+            "Hour": "00",
+            "DataType": "单次",
+            "index": 0,
+            "Time": "2023-02-19T16:00:00.000Z",
+            "Day": 20,
+            "TimeName": "",
+            "IsAll": True
+        }
+    ]
+}
 
